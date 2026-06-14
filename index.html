@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#146c5a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Appart'Tri</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/icon.svg">
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <p class="eyebrow">Recherche immobilière</p>
+            <h1>Appart'Tri</h1>
+            <p class="subtitle">
+                Vos annonces restent sur cet appareil et restent disponibles hors ligne.
+            </p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="message" class="messages" aria-live="polite"></div>
+
+        <section class="panel backup-panel">
+            <div>
+                <p class="eyebrow">Sauvegarde manuelle</p>
+                <h2>Synchroniser vos appareils</h2>
+                <p class="muted" id="backup-status">Aucune sauvegarde exportée sur cet appareil.</p>
+            </div>
+            <div class="backup-actions">
+                <button class="secondary-button" type="button" id="export-button">
+                    Exporter les données
+                </button>
+                <button class="secondary-button" type="button" id="import-button">
+                    Importer une sauvegarde
+                </button>
+                <input id="import-file" type="file" accept="application/json,.json" hidden>
+                <button class="primary-button install-button" type="button" id="install-button" hidden>
+                    Installer l'application
+                </button>
+            </div>
+        </section>
+
+        <section class="panel form-panel">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow" id="form-eyebrow">Nouvelle piste</p>
+                    <h2 id="form-title">Ajouter un appartement</h2>
+                </div>
+                <button class="secondary-button" type="button" id="toggle-form">
+                    Masquer le formulaire
+                </button>
+            </div>
+
+            <form class="apartment-form" id="apartment-form">
+                <input id="apartment-id" type="hidden">
+
+                <div class="field field-wide">
+                    <label for="title">Titre</label>
+                    <input id="title" type="text" required maxlength="150"
+                           placeholder="T2 lumineux près du métro">
+                </div>
+
+                <div class="field">
+                    <label for="city">Ville</label>
+                    <input id="city" type="text" required maxlength="100" placeholder="Lyon">
+                </div>
+
+                <div class="field">
+                    <label for="price">Prix (€)</label>
+                    <input id="price" type="number" required min="0" step="0.01" placeholder="210000">
+                </div>
+
+                <div class="field">
+                    <label for="surface">Surface (m²)</label>
+                    <input id="surface" type="number" required min="0.1" step="0.1" placeholder="48">
+                </div>
+
+                <div class="field">
+                    <label for="rooms">Nombre de pièces</label>
+                    <input id="rooms" type="number" required min="1" step="1" placeholder="2">
+                </div>
+
+                <div class="field">
+                    <label for="rating">Note sur 10</label>
+                    <input id="rating" type="number" required min="1" max="10" step="1" value="5">
+                </div>
+
+                <div class="field">
+                    <label for="status">Statut</label>
+                    <select id="status">
+                        <option>À voir</option>
+                        <option>Contacté</option>
+                        <option>À visiter</option>
+                        <option>Visité</option>
+                        <option>Favori</option>
+                        <option>Refusé</option>
+                    </select>
+                </div>
+
+                <div class="field field-wide">
+                    <label for="listing-url">Lien de l'annonce</label>
+                    <input id="listing-url" type="url" maxlength="1000" placeholder="https://...">
+                </div>
+
+                <div class="field field-wide">
+                    <label for="comments">Commentaires personnels</label>
+                    <textarea id="comments" rows="3"
+                              placeholder="Quartier calme, cuisine à vérifier..."></textarea>
+                </div>
+
+                <div class="form-actions field-wide">
+                    <button class="primary-button" type="submit" id="save-button">
+                        Ajouter à ma sélection
+                    </button>
+                    <button class="secondary-button" type="button" id="cancel-edit" hidden>
+                        Annuler la modification
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <div class="section-heading results-heading">
+                <div>
+                    <p class="eyebrow">Votre sélection</p>
+                    <h2 id="apartment-count">0 appartement</h2>
+                </div>
+
+                <div class="filters">
+                    <div class="field compact-field">
+                        <label for="city-filter">Ville</label>
+                        <select id="city-filter">
+                            <option value="">Toutes les villes</option>
+                        </select>
+                    </div>
+
+                    <div class="field compact-field">
+                        <label for="sort">Trier par</label>
+                        <select id="sort">
+                            <option value="updated">Modification récente</option>
+                            <option value="price_asc">Prix croissant</option>
+                            <option value="price_desc">Prix décroissant</option>
+                            <option value="surface_desc">Surface décroissante</option>
+                            <option value="surface_asc">Surface croissante</option>
+                            <option value="rating_desc">Meilleure note</option>
+                            <option value="rating_asc">Note croissante</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-wrapper" id="table-wrapper" hidden>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Appartement</th>
+                            <th>Prix</th>
+                            <th>Surface</th>
+                            <th>Pièces</th>
+                            <th>Note</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="apartment-rows"></tbody>
+                </table>
+            </div>
+
+            <div class="empty-state" id="empty-state">
+                <p>Aucun appartement ne correspond à votre sélection.</p>
+                <p class="muted">Ajoutez votre première annonce avec le formulaire ci-dessus.</p>
+            </div>
+        </section>
+    </main>
+
+    <dialog id="import-dialog">
+        <form method="dialog" class="dialog-content">
+            <p class="eyebrow">Importer une sauvegarde</p>
+            <h2>Comment appliquer ces données ?</h2>
+            <p id="import-summary" class="muted"></p>
+            <div class="dialog-actions">
+                <button class="primary-button" value="merge">Fusionner</button>
+                <button class="secondary-button" value="replace">Tout remplacer</button>
+                <button class="danger-button" value="cancel">Annuler</button>
+            </div>
+        </form>
+    </dialog>
+</body>
+</html>
